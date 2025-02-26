@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetShield Pro - Advanced Phishing Detection</title>
+    
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    
+    <!-- QR Code Library -->
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    
+    <!-- Chart.js for Statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Theme Variables */
+        :root[data-theme="light"] {
+            --bg-primary: #e0f7fa;
+            --bg-secondary: #fdebd0;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --accent-primary: #1a73e8;
+            --accent-secondary: #6A11CB;
+            --danger: #E53935;
+            --success: #43A047;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        :root[data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #004d40;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-primary: #64B5F6;
+            --accent-secondary: #BA68C8;
+            --danger: #EF5350;
+            --success: #66BB6A;
+            --card-bg: rgba(45, 45, 45, 0.95);
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s, color 0.3s, transform 0.3s;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Header Styles */
+        header {
+            background: var(--card-bg);
+            padding: 1rem;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            margin: 0;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 5px;
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .login-btn {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .signup-btn {
+            background: var(--accent-secondary);
+            color: white;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            background: var(--bg-secondary);
+            perspective: 1000px;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+            animation: float 3.5s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Main Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px) rotateX(10deg) rotateY(10deg);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .feature-card i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* URL Scanner Section */
+.scanner-section {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.url-form {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: none;
+}
+
+.url-form:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.url-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 10px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+.url-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.scanner-section .scan-btn {
+    width: 20%;
+    padding: 10px;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.scanner-section .scan-btn:hover {
+    background: var(--accent-secondary);
+}
+
+        /* History Section */
+        .history-section {
+            background: var(--bg-secondary);
+            padding: 40px 20px;
+            perspective: 1000px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            transform-style: preserve-3d;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--text-secondary);
+        }
+
+        .history-table button {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: none;
+            background-color: var(--accent-primary);
+            color: white;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .history-table button:hover {
+            background-color: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        /* Statistics Dashboard */
+        .stats-dashboard {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            perspective: 1000px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 250px;
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transform-style: preserve-3d;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-primary);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            margin: 50px auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .modal-content:hover {
+            transform: rotateX(5deg) rotateY(5deg);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        /* Login Modal */
+        .modal.login-modal {
+            background: rgba(0, 0, 0, 0.7);
+        }
+        .modal.login-modal .modal-content {
+            background: var(--card-bg);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        .modal.login-modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--text-secondary);
+            border-radius: 5px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .modal.login-modal button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Sign Up Modal */
+        .modal.signup-modal .modal-content {
+            background: var(--card-bg);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        .modal.signup-modal input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid var(--text-secondary);
+            border-radius: 5px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .modal.signup-modal button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--accent-secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .slide-up {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .stats-dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .notification.success { background-color: var(--success); }
+        .notification.error { background-color: var(--danger); }
+        .notification.info { background-color: var(--accent-primary); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            padding: 20px;
+            text-align: center;
+        }
+        footer p {
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Theme Toggle -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <h1>NetShield Pro</h1>
+            </div>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="auth-buttons">
+                    <button class="auth-btn login-btn" onclick="showLoginModal()">Login</button>
+                    <button class="auth-btn signup-btn" onclick="showSignupModal()">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>Advanced Phishing Detection</h2>
+        <p>Protect yourself from online threats with our AI-powered URL analysis system</p>
+    </section>
+
+    <!-- Main Features Grid -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-search"></i>
+            <h3>URL Scanner</h3>
+            <p>Analyze suspicious URLs instantly</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-history"></i>
+            <h3>Scan History</h3>
+            <p>Track your previous scans</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-chart-bar"></i>
+            <h3>Statistics</h3>
+            <p>View detailed threat analytics</p>
+        </div>
+    </div>
+
+    <!-- URL Scanner Section -->
+    <section class="scanner-section">
+        <div class="url-form">
+            <h3>Scan URL</h3>
+            <form id="urlScanForm">
+                <input type="url" class="url-input" placeholder="Enter URL to analyze..." required>
+                <button type="submit" class="scan-btn">
+                    <span>Analyze URL</span>
+                    <div class="loader"></div>
+                </button>
+            </form>
+            <div id="scanResult" class="scan-result"></div>
+        </div>
+    </section>
+
+    <!-- History Section -->
+    <section class="history-section" id="historySection">
+        <h3>Scan History</h3>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>URL</th>
+                    <th>Result</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+        </table>
+    </section>
+
+    <!-- Statistics Dashboard -->
+    <section class="stats-dashboard">
+        <div class="stat-card">
+            <h4>Total Scans</h4>
+            <div id="totalScans">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>Threats Detected</h4>
+            <div id="threatsDetected">0</div>
+        </div>
+        <div class="stat-card">
+            <h4>Safe URLs</h4>
+            <div id="safeUrls">0</div>
+        </div>
+        <div class="stat-card">
+            <canvas id="threatChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Authentication Modals -->
+    <div id="loginModal" class="modal login-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('loginModal')">&times;</span>
+            <h3>Login</h3>
+            <form id="loginForm">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="signupModal" class="modal signup-modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('signupModal')">&times;</span>
+            <h3>Sign Up</h3>
+            <form id="signupForm">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <input type="password" placeholder="Confirm Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 NetShield Pro. All rights reserved.</p>
+    </footer>
+
+    <!-- JavaScript -->
+   <script>
+    // Theme Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = root.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        root.setAttribute('data-theme', newTheme);
+        themeToggle.innerHTML = newTheme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+        localStorage.setItem('theme', newTheme);
+    });
+
+    // URL Scanner Functionality
+    const urlScanForm = document.getElementById('urlScanForm');
+    const scanResult = document.getElementById('scanResult');
+
+    urlScanForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const url = e.target.querySelector('input').value;
+
+        // Show loading state
+        scanResult.innerHTML = '<div class="loader"></div>';
+
+        try {
+            // Send URL to Flask backend for prediction
+            const result = await analyzeUrl(url);
+            displayResult(result);
+            updateHistory(url, result);
+            updateStats(result);
+        } catch (error) {
+            scanResult.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        }
+    });
+
+    async function analyzeUrl(url) {
+        try {
+            // Send a POST request to the Flask backend
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to analyze URL');
+            }
+
+            const data = await response.json();
+            return data.result; // Return the prediction result from Flask
+        } catch (error) {
+            throw new Error('Failed to analyze URL');
+        }
+    }
+
+    function displayResult(result) {
+        const isPhishing = result.includes('Suspicious'); // Check if the result indicates phishing
+        const resultHtml = `
+            <div class="result ${isPhishing ? 'dangerous' : 'safe'}">
+                <i class="fas ${isPhishing ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                <h4>${result}</h4>
+            </div>
+        `;
+        scanResult.innerHTML = resultHtml;
+    }
+
+    // History Management
+    let scanHistory = JSON.parse(localStorage.getItem('scanHistory') || '[]');
+
+    function updateHistory(url, result) {
+        const scan = {
+            date: new Date().toISOString(),
+            url,
+            result
+        };
+        scanHistory.unshift(scan);
+        localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
+        updateHistoryTable();
+    }
+
+    function updateHistoryTable() {
+        const tbody = document.getElementById('historyTableBody');
+        tbody.innerHTML = scanHistory.map(scan => `
+            <tr>
+                <td>${new Date(scan.date).toLocaleDateString()}</td>
+                <td>${scan.url}</td>
+                <td class="${scan.result.includes('Suspicious') ? 'dangerous' : 'safe'}">
+                    ${scan.result}
+                </td>
+                <td>
+                    <button onclick="rescan('${scan.url}')">Rescan</button>
+                    <button onclick="deleteFromHistory('${scan.date}')">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function rescan(url) {
+        document.getElementById('urlScanForm').querySelector('input').value = url;
+        urlScanForm.dispatchEvent(new Event('submit'));
+    }
+
+    function deleteFromHistory(date) {
+        scanHistory = scanHistory.filter(scan => scan.date !== date);
+        localStorage.setItem('scanHistory', JSON.stringify(scanHistory));
+        updateHistoryTable();
+    }
+
+    // Statistics and Charts
+    let stats = JSON.parse(localStorage.getItem('stats') || '{"total": 0, "threats": 0, "safe": 0}');
+
+    function updateStats(result) {
+        stats.total++;
+        if (result.includes('Suspicious')) {
+            stats.threats++;
+        } else {
+            stats.safe++;
+        }
+        localStorage.setItem('stats', JSON.stringify(stats));
+        updateStatsDisplay();
+        updateThreatChart();
+    }
+
+    function updateStatsDisplay() {
+        document.getElementById('totalScans').textContent = stats.total;
+        document.getElementById('threatsDetected').textContent = stats.threats;
+        document.getElementById('safeUrls').textContent = stats.safe;
+    }
+
+    function updateThreatChart() {
+        const ctx = document.getElementById('threatChart').getContext('2d');
+        if (window.threatChartInstance) {
+            window.threatChartInstance.destroy(); // Destroy existing chart instance
+        }
+        window.threatChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Safe', 'Threats'],
+                datasets: [{
+                    data: [stats.safe, stats.threats],
+                    backgroundColor: [
+                        'rgba(67, 160, 71, 0.8)', // Green for Safe
+                        'rgba(229, 57, 53, 0.8)' // Red for Threats
+                    ],
+                    borderColor: [
+                        'rgba(67, 160, 71, 1)', // Green border for Safe
+                        'rgba(229, 57, 53, 1)' // Red border for Threats
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.raw !== undefined) {
+                                    label += context.raw;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Authentication System
+    class AuthSystem {
+        constructor() {
+            this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            this.users = JSON.parse(localStorage.getItem('users') || '[]');
+            this.setupAuthListeners();
+            this.updateAuthUI();
+        }
+
+        setupAuthListeners() {
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.login(e.target);
+            });
+
+            document.getElementById('signupForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.signup(e.target);
+            });
+        }
+
+        login(form) {
+            const email = form.querySelector('[type="email"]').value;
+            const password = form.querySelector('[type="password"]').value;
+
+            const user = this.users.find(u => u.email === email && u.password === password);
+            if (user) {
+                this.currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                this.updateAuthUI();
+                closeModal('loginModal');
+                showNotification('Login successful!', 'success');
+            } else {
+                showNotification('Invalid credentials!', 'error');
+            }
+        }
+
+        signup(form) {
+            const name = form.querySelector('[placeholder="Full Name"]').value;
+            const email = form.querySelector('[type="email"]').value;
+            const password = form.querySelector('[placeholder="Password"]').value;
+            const confirmPassword = form.querySelector('[placeholder="Confirm Password"]').value;
+
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match!', 'error');
+                return;
+            }
+
+            if (this.users.some(u => u.email === email)) {
+                showNotification('Email already registered!', 'error');
+                return;
+            }
+
+            const newUser = { name, email, password };
+            this.users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(this.users));
+            
+            this.currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            this.updateAuthUI();
+            closeModal('signupModal');
+            showNotification('Registration successful!', 'success');
+        }
+
+        logout() {
+            this.currentUser = null;
+            localStorage.removeItem('currentUser');
+            this.updateAuthUI();
+            showNotification('Logged out successfully!', 'success');
+        }
+
+        updateAuthUI() {
+            const authButtons = document.querySelector('.auth-buttons');
+            if (this.currentUser) {
+                authButtons.innerHTML = `
+                    <span>Welcome, ${this.currentUser.name}</span>
+                    <button class="auth-btn" onclick="auth.logout()">Logout</button>
+                `;
+            } else {
+                authButtons.innerHTML = `
+                    <button class="auth-btn login-btn" onclick="showLoginModal()">Login</button>
+                    <button class="auth-btn signup-btn" onclick="showSignupModal()">Sign Up</button>
+                `;
+            }
+        }
+    }
+
+    // Share Functionality
+    function shareResult(platform) {
+        const result = document.querySelector('.scan-result').textContent;
+        const url = encodeURIComponent(window.location.href);
+        const text = encodeURIComponent(`Check out this URL scan result: ${result}`);
+
+        const shareUrls = {
+            twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+            linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${text}`
+        };
+
+        window.open(shareUrls[platform], '_blank');
+    }
+
+    // QR Code Generation
+    function generateQRCode() {
+        const qrContainer = document.getElementById('qrCode');
+        new QRCode(qrContainer, {
+            text: window.location.href,
+            width: 128,
+            height: 128
+        });
+    }
+
+    // Browser Extension
+    function promoteBrowserExtension() {
+        const browserName = detectBrowser();
+        const extensionUrls = {
+            chrome: 'https://chrome.google.com/webstore/your-extension',
+            firefox: 'https://addons.mozilla.org/your-extension',
+            edge: 'https://microsoftedge.microsoft.com/addons/your-extension'
+        };
+
+        if (extensionUrls[browserName]) {
+            showNotification(`Install our ${browserName} extension for real-time protection!`, 'info', () => {
+                window.open(extensionUrls[browserName], '_blank');
+            });
+        }
+    }
+
+    // Utility Functions
+    function detectBrowser() {
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('Chrome')) return 'chrome';
+        if (userAgent.includes('Firefox')) return 'firefox';
+        if (userAgent.includes('Edge')) return 'edge';
+        return 'other';
+    }
+
+    function showNotification(message, type, onClick) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        if (onClick) notification.onclick = onClick;
+
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    function showLoginModal() {
+        document.getElementById('loginModal').style.display = 'block';
+    }
+
+    function showSignupModal() {
+        document.getElementById('signupModal').style.display = 'block';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        const auth = new AuthSystem();
+        window.auth = auth; // Make auth system globally accessible
+
+        // Initialize features
+        updateStatsDisplay();
+        updateThreatChart();
+        generateQRCode();
+        promoteBrowserExtension();
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        root.setAttribute('data-theme', savedTheme);
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
