@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSL/TLS Certificate Verification</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap">
+  <style>
+    :root[data-theme="light"] {
+      --bg-primary: #f8f9fa;
+      --bg-secondary: #e9ecef;
+      --bg-tertiary: #ffffff;
+      --text-primary: #212529;
+      --text-secondary: #6c757d;
+      --accent-primary: #4361ee;
+      --accent-secondary: #3a0ca3;
+      --accent-tertiary: #7209b7;
+      --border-color: #dee2e6;
+      --card-bg: #ffffff;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --danger: #e63946;
+      --success: #38b000;
+      --warning: #ffb703;
+      --info: #4cc9f0;
+      --header-bg: linear-gradient(135deg, #4361ee, #3a0ca3);
+      --header-text: #ffffff;
+      --nav-bg: #ffffff;
+      --nav-text: #212529;
+      --nav-active: #4361ee;
+      --nav-hover-bg: #f8f9fa;
+      --divider-color: rgba(67, 97, 238, 0.2);
+      --banner-bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    }
+
+    :root[data-theme="dark"] {
+      --bg-primary: #121212;
+      --bg-secondary: #1e1e1e;
+      --bg-tertiary: #2d2d2d;
+      --text-primary: #e9ecef;
+      --text-secondary: #adb5bd;
+      --accent-primary: #4cc9f0;
+      --accent-secondary: #7209b7;
+      --accent-tertiary: #3a0ca3;
+      --border-color: #495057;
+      --card-bg: #2d2d2d;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      --danger: #e63946;
+      --success: #38b000;
+      --warning: #ffb703;
+      --info: #4cc9f0;
+      --header-bg: linear-gradient(135deg, #3a0ca3, #7209b7);
+      --header-text: #ffffff;
+      --nav-bg: #1e1e1e;
+      --nav-text: #e9ecef;
+      --nav-active: #4cc9f0;
+      --nav-hover-bg: #2d2d2d;
+      --divider-color: rgba(76, 201, 240, 0.2);
+      --banner-bg: linear-gradient(135deg, #007991, #78ffd6);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 0;
+      position: fixed;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1.5rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo i {
+      font-size: 1.75rem;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .theme-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.3s, background-color 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: rotate(15deg);
+    }
+
+    nav {
+      background-color: var(--nav-bg);
+      padding: 0.5rem 0;
+      margin-top: 70px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 70px;
+      z-index: 900;
+    }
+
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      gap: 0.5rem;
+    }
+
+    .nav-links li a {
+      display: block;
+      padding: 0.75rem 1.25rem;
+      color: var(--nav-text);
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links li a:hover {
+      background-color: var(--nav-hover-bg);
+      transform: translateY(-2px);
+    }
+
+    .nav-links li a.active {
+      color: var(--nav-active);
+      border-bottom: 3px solid var(--nav-active);
+    }
+
+    /* Divider Line */
+    .divider {
+      height: 2px;
+      background: var(--divider-color);
+      width: 100%;
+      margin: 0;
+    }
+
+    /* Enhanced Page Banner */
+    .page-banner {
+      background: var(--banner-bg);
+      padding: 5rem 1rem 4rem;
+      color: white;
+      text-align: center;
+      margin-top: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.05)' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.6;
+    }
+
+    .banner-content {
+      position: relative;
+      z-index: 10;
+    }
+
+    .page-banner h1 {
+      font-size: 2.8rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .page-banner h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: #fff;
+      border-radius: 2px;
+    }
+
+    .page-banner p {
+      font-size: 1.3rem;
+      max-width: 700px;
+      margin: 0 auto;
+      opacity: 0.9;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .banner-icons {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .floating-icon {
+      position: absolute;
+      font-size: 2rem;
+      color: rgba(255, 255, 255, 0.15);
+      animation: floating 15s infinite linear;
+    }
+
+    @keyframes floating {
+      0% {
+        transform: translateY(0) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(0) rotate(360deg);
+      }
+    }
+
+    /* Main Content */
+    .main-container {
+      flex: 1;
+      padding: 2rem 0;
+      max-width: 850px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .section {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    .section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .section:hover::before {
+      transform: scaleX(1);
+    }
+
+    .section h2 {
+      color: var(--text-primary);
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section h2 i {
+      color: var(--accent-primary);
+    }
+
+    /* SSL Checker */
+    .checker-container {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .checker-container::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      opacity: 0.05;
+      bottom: -70px;
+      right: -70px;
+      z-index: 0;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+    }
+
+    .checker-container input[type="text"] {
+      width: 100%;
+      padding: 1.2rem 1rem 1.2rem 3rem;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 1rem;
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .checker-container input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
+    }
+
+    .checker-container input[type="text"]::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .btn {
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      padding: 1.1rem 2.2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 4px 10px rgba(67, 97, 238, 0.25);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+      z-index: -1;
+    }
+
+    .btn:hover {
+      background: var(--accent-secondary);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(67, 97, 238, 0.3);
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    /* Status */
+    .status-container {
+      margin-top: 2rem;
+      min-height: 40px;
+    }
+
+    #status {
+      padding: 1.2rem;
+      border-radius: 10px;
+      font-weight: 500;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      opacity: 0;
+      transform: translateY(-10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    #status.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .status-success {
+      background-color: rgba(56, 176, 0, 0.1);
+      color: var(--success);
+      border-left: 5px solid var(--success);
+    }
+
+    .status-warning {
+      background-color: rgba(255, 183, 3, 0.1);
+      color: var(--warning);
+      border-left: 5px solid var(--warning);
+    }
+
+    .status-error {
+      background-color: rgba(230, 57, 70, 0.1);
+      color: var(--danger);
+      border-left: 5px solid var(--danger);
+    }
+
+    .status-checking {
+      background-color: rgba(67, 97, 238, 0.1);
+      color: var(--accent-primary);
+      border-left: 5px solid var(--accent-primary);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+      }
+    }
+
+    /* Info Cards */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .info-card {
+      background-color: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 100%;
+      background: var(--accent-primary);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: var(--card-shadow);
+    }
+
+    .info-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .info-card h3 {
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .info-icon {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+      transition: transform 0.3s;
+    }
+
+    .info-card:hover .info-icon {
+      transform: rotate(360deg);
+    }
+
+    /* Benefits */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .benefit-card {
+      background-color: var(--bg-tertiary);
+      border-radius: 12px;
+      padding: 1.8rem;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .benefit-card::after {
+      content: '';
+      position: absolute;
+      bottom: -60px;
+      right: -60px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      opacity: 0.05;
+      z-index: 0;
+      transition: all 0.3s;
+    }
+
+    .benefit-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--card-shadow);
+    }
+
+    .benefit-card:hover::after {
+      transform: scale(1.3);
+      opacity: 0.08;
+    }
+
+    .benefit-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.2rem;
+      font-size: 1.8rem;
+      transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+    }
+
+    .benefit-card:hover .benefit-icon {
+      transform: translateY(-10px) rotate(10deg);
+    }
+
+    .benefit-title {
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .benefit-title::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 2px;
+      background: var(--accent-primary);
+      transition: width 0.3s ease;
+    }
+
+    .benefit-card:hover .benefit-title::after {
+      width: 80%;
+    }
+
+    .benefit-card p {
+      color: var(--text-secondary);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Loading Animation */
+    .loader {
+      display: none;
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(67, 97, 238, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--accent-primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Enhanced Animations */
+    .fade-in {
+      animation: fadeIn 0.8s ease forwards;
+    }
+
+    .slide-up {
+      animation: slideUp 0.8s ease forwards;
+    }
+
+    .bounce-in {
+      animation: bounceIn 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bounceIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      70% {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    /* Footer */
+    footer {
+      background-color: var(--bg-secondary);
+      padding: 2rem 0;
+      margin-top: auto;
+      position: relative;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .social-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: var(--bg-tertiary);
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+    }
+
+    .social-icon:hover {
+      background-color: var(--accent-primary);
+      color: white;
+      transform: translateY(-3px);
+    }
+
+    footer p {
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    footer a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+
+    footer a:hover {
+      color: var(--accent-secondary);
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .nav-links {
+        flex-wrap: wrap;
+      }
+      
+      .page-banner h1 {
+        font-size: 2rem;
+      }
+      
+      .page-banner p {
+        font-size: 1rem;
+      }
+      
+      .section {
+        padding: 1.5rem;
+      }
+      
+      .info-grid, 
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .footer-content {
+        padding: 0 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <i class="fas fa-shield-alt"></i>
+        <h1>NetShield Pro</h1>
+      </div>
+      <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <nav>
+    <ul class="nav-links">
+      <li><a href="home.html">Home</a></li>
+      <li><a href="index.html">URL Detection</a></li>
+      <li><a href="email.html">Email Security</a></li>
+      <li><a href="steg.html">Steganography</a></li>
+      <li><a href="socio.html">Social Engg</a></li>
+      <li><a href="pass.html">Password Vault</a></li>
+      <li><a href="ssl.html" class="active">SSL/TLS</a></li>
+    </ul>
+  </nav>
+  
+  <!-- Added divider line -->
+  <div class="divider"></div>
+
+  <!-- Enhanced Banner with Animation -->
+  <div class="page-banner">
+    <div class="banner-icons">
+      <i class="fas fa-lock floating-icon" style="top: 20%; left: 10%; animation-duration: 15s; animation-delay: 0s;"></i>
+      <i class="fas fa-shield-alt floating-icon" style="top: 30%; left: 20%; animation-duration: 18s; animation-delay: 1s;"></i>
+      <i class="fas fa-key floating-icon" style="top: 50%; left: 80%; animation-duration: 20s; animation-delay: 2s;"></i>
+      <i class="fas fa-user-shield floating-icon" style="top: 70%; left: 15%; animation-duration: 22s; animation-delay: 3s;"></i>
+      <i class="fas fa-certificate floating-icon" style="top: 40%; left: 70%; animation-duration: 19s; animation-delay: 4s;"></i>
+      <i class="fas fa-fingerprint floating-icon" style="top: 60%; left: 85%; animation-duration: 21s; animation-delay: 5s;"></i>
+    </div>
+    <div class="banner-content">
+      <h1 class="bounce-in">SSL/TLS Certificate Verification</h1>
+      <p class="fade-in">Ensure your connections are secure with our advanced verification tool</p>
+    </div>
+  </div>
+
+<div class="main-container">
+    <!-- Checker Section -->
+    <div class="section slide-up">
+      <h2><i class="fas fa-shield-alt"></i> Verify Website Security</h2>
+      <div class="checker-container">
+        <div class="input-group">
+          <i class="fas fa-globe"></i>
+          <input type="text" id="urlInput" placeholder="Enter website URL (e.g., https://example.com)">
+        </div>
+        <button id="checkSSL" class="btn">
+          <i class="fas fa-lock"></i>
+          Check SSL/TLS Certificate
+        </button>
+        <div class="status-container">
+          <div id="status"></div>
+          <div class="loader" id="loader"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="section slide-up">
+      <h2><i class="fas fa-info-circle"></i> SSL/TLS Security Explained</h2>
+      <div class="info-grid">
+        <div class="info-card">
+          <h3><span class="info-icon"><i class="fas fa-lock"></i></span>What is SSL/TLS?</h3>
+          <p>
+            SSL (Secure Sockets Layer) and its successor TLS (Transport Layer Security) are protocols that create 
+            encrypted connections between web servers and browsers, ensuring data privacy and integrity.
+          </p>
+        </div>
+        <div class="info-card">
+          <h3><span class="info-icon"><i class="fas fa-key"></i></span>How It Works</h3>
+          <p>
+            When you visit a secure website, your browser and the server establish an encrypted connection using 
+            a digital certificate, protecting your sensitive information from potential attackers.
+          </p>
+        </div>
+        <div class="info-card">
+          <h3><span class="info-icon"><i class="fas fa-eye-slash"></i></span>Protection</h3>
+          <p>
+            SSL/TLS certificates encrypt data, authenticate websites, and protect against man-in-the-middle attacks,
+            keeping your passwords, credit cards, and personal information safe.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="section slide-up">
+      <h2><i class="fas fa-check-circle"></i> Benefits of SSL/TLS</h2>
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <i class="fas fa-lock"></i>
+          </div>
+          <h3 class="benefit-title">Data Encryption</h3>
+          <p>Protect sensitive information from interception by encrypting data during transmission</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <h3 class="benefit-title">Authentication</h3>
+          <p>Verify the identity of websites to protect against phishing and spoofing attacks</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3 class="benefit-title">SEO Boost</h3>
+          <p>Improve search engine rankings as Google and other search engines prioritize secure websites</p>
+        </div>
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <i class="fas fa-thumbs-up"></i>
+          </div>
+          <h3 class="benefit-title">User Trust</h3>
+          <p>Build credibility with customers by displaying security indicators like the padlock icon</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="social-icons">
+        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+      </div>
+      <p>&copy; 2025 by <a href="#">NetShield Pro</a> | Stay Safe, Stay Secure.</p>
+      <p><small>Your privacy matters - all operations are performed locally in your browser</small></p>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('themeToggle');
+      const root = document.documentElement;
+      const checkButton = document.getElementById('checkSSL');
+      const urlInput = document.getElementById('urlInput');
+      const statusDiv = document.getElementById('status');
+      const loader = document.getElementById('loader');
+
+      // Create animated floating icons for banner
+      const createFloatingIcons = () => {
+        const bannerIcons = document.querySelector('.banner-icons');
+        const icons = ['fa-lock', 'fa-shield-alt', 'fa-key', 'fa-user-shield', 'fa-certificate', 'fa-fingerprint'];
+        
+        icons.forEach((icon, index) => {
+          const i = document.createElement('i');
+          i.className = `fas ${icon} floating-icon`;
+          i.style.top = `${Math.random() * 80 + 10}%`;
+          i.style.left = `${Math.random() * 80 + 10}%`;
+          i.style.animationDuration = `${Math.random() * 10 + 15}s`;
+          i.style.animationDelay = `${index * 1}s`;
+          bannerIcons.appendChild(i);
+        });
+      };
+
+      // Theme toggling with animation
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = root.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        root.setAttribute('data-theme', newTheme);
+
+        // Update icon with animation
+        themeToggle.classList.add('bounce-in');
+        setTimeout(() => {
+          themeToggle.innerHTML = newTheme === 'light' ? 
+            '<i class="fas fa-moon"></i>' : 
+            '<i class="fas fa-sun"></i>';
+          themeToggle.classList.remove('bounce-in');
+        }, 300);
+      });
+
+      // Check user preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.setAttribute('data-theme', 'dark');
+        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+      }
+
+      // SSL Check functionality with enhanced animations
+      checkButton.addEventListener('click', checkSSL);
+      urlInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          checkSSL();
+        }
+      });
+
+      async function checkSSL() {
+        const url = urlInput.value.trim();
+        
+        // Reset status
+        statusDiv.textContent = "";
+        statusDiv.className = "";
+        
+        // Animation for button click
+        checkButton.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          checkButton.style.transform = 'scale(1)';
+        }, 150);
+        
+        // Show loader
+        loader.style.display = "inline-block";
+        
+        if (!url) {
+          showStatus("warning", "<i class='fas fa-exclamation-triangle'></i> Please enter a website URL");
+          return;
+        }
+        
+        // Format URL if needed
+        let formattedUrl = url;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          formattedUrl = 'https://' + url;
+        }
+        
+        if (!formattedUrl.startsWith('https://')) {
+          showStatus("warning", "<i class='fas fa-exclamation-triangle'></i> This URL doesn't use HTTPS. SSL/TLS certificates are only used with HTTPS connections.");
+          return;
+        }
+
+        try {
+          // Display checking status with animation
+          showStatus("checking", "<i class='fas fa-spinner fa-spin'></i> Checking SSL/TLS certificate...");
+          
+          // Simulate network request
+          await new Promise(resolve => setTimeout(resolve, 1800));
+          
+          // Determine result (simplified for demo)
+          // In a real implementation, you would perform actual certificate validation
+          const isSecure = Math.random() > 0.3; // 70% chance of success for demo
+          
+          if (isSecure) {
+            showStatus("success", "<i class='fas fa-shield-alt'></i> The website has a valid SSL/TLS certificate and secure connection.");
+          } else {
+            showStatus("error", "<i class='fas fa-exclamation-circle'></i> Failed to verify SSL/TLS certificate. The certificate may be invalid or expired.");
+          }
+        } catch (error) {
+          showStatus("error", "<i class='fas fa-times-circle'></i> Error checking certificate: " + error.message);
+        }
+      }
+
+      // Helper function to show status with enhanced animations
+      function showStatus(type, message) {
+        // Hide loader
+        loader.style.display = "none";
+        
+        // Update status message and styling with bounce animation
+        statusDiv.innerHTML = message;
+        statusDiv.className = `status-${type}`;
+        
+        // Force reflow to restart animation
+        void statusDiv.offsetWidth;
+        
+        // Add show class with animation
+        setTimeout(() => {
+          statusDiv.classList.add("show");
+        }, 10);
+      }
+
+      // Enhanced animations on scroll with intersection observer
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('fade-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      // Observe all sections
+      document.querySelectorAll('.section').forEach(section => {
+        observer.observe(section);
+      });
+      
+      // Add animated ripple effect on button click
+      checkButton.addEventListener('mousedown', function(e) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        this.appendChild(ripple);
+        
+        const x = e.clientX - e.target.getBoundingClientRect().left;
+        const y = e.clientY - e.target.getBoundingClientRect().top;
+        
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      });
+      
+      // Add hover effects to cards with slight delay
+      document.querySelectorAll('.info-card, .benefit-card').forEach((card, index) => {
+        card.addEventListener('mouseenter', function() {
+          this.style.transitionDelay = '0s';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.transitionDelay = '0s';
+        });
+      });
+    });
+  </script>
+</body>
+</html>
